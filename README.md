@@ -17,5 +17,5 @@ Pour aller plus loin
 --------------------
 
 - https://www.ansible.com/
-- http://docs.ansible.com/ansible/ modules_by_category.html
+- http://docs.ansible.com/ansible/modules_by_category.html
 - https://galaxy.ansible.com/
