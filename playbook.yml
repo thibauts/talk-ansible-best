@@ -1,0 +1,93 @@
+- hosts: all
+  tasks:
+    - name: Install htop
+      apt:
+        name: htop
+      become: yes
+
+    - name: Add Chris Lea Redis repository
+      apt_repository:
+        repo: 'ppa:chris-lea/redis-server'
+        update_cache: yes
+      become: yes
+
+    - name: Install Redis
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - redis-server
+        - redis-tools
+      become: yes
+
+    - name: Bind Redis on all available interfaces
+      lineinfile:
+        name: /etc/redis/redis.conf
+        regexp: '^bind '
+        line: 'bind 0.0.0.0'
+      become: yes
+
+    - name: Restart Redis service
+      service:
+        name: redis-server
+        state: restarted
+      become: yes
+
+    - name: Add NodeSource repository key
+      apt_key:
+        id: 68576280
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+        state: present
+      become: yes
+
+    - name: Add NodeSource repository
+      apt_repository:
+        repo: deb https://deb.nodesource.com/node_4.x trusty main
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Add NodeSource repository preferences
+      template:
+        src: nodesource.pref.j2
+        dest: /etc/apt/preferences.d/nodesource.pref
+      become: yes
+
+    - name: Install NodeJS
+      apt:
+        name: nodejs
+        state: latest
+      become: yes
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: latest
+      become: yes
+
+    - name: Add BEST site config
+      template:
+        src: best.j2
+        dest: /etc/nginx/sites-available/best
+      become: yes
+
+    - name: Disable default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      become: yes
+
+    - name: Enable BEST nginx site
+      file:
+        src: /etc/nginx/sites-available/best
+        dest: /etc/nginx/sites-enabled/best
+        state: link
+      become: yes
+
+    - name: Restart nginx service
+      service:
+        name: nginx
+        state: restarted
+      become: yes
+
+
